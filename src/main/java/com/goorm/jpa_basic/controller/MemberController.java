@@ -54,7 +54,14 @@ public class MemberController {
     public ResponseEntity<String> register(@RequestBody Member member, HttpSession session) throws MessagingException {
         // 이메일 인증번호 발송
         verificationCode = emailService.sendVerificationEmail(member.getEmail());
-        session.setAttribute("member",member);
+
+        //세션에 인증번호와 인증 시간 저장
+        session.setAttribute("verificationCode", verificationCode);
+        session.setAttribute("verificationTime", LocalDateTime.now());
+        session.setAttribute("member", member);
+
+        logger.info("인증번호 저장: {}", verificationCode);
+        logger.info("세션 ID: {}", session.getId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body("이메일 인증번호를 발송했습니다.");
     }
@@ -62,7 +69,10 @@ public class MemberController {
     //이메일 인증번호 확인
     @PostMapping("/activate")
     public ResponseEntity<String> verifyEmail(@RequestParam String inputCode, HttpSession session) {
-        //세션에서 저장한 member 객체 가져오기
+        //세션 정보 로깅
+        logger.info("세션 ID: {}", session.getId());
+
+        // 세션에서 회원 정보 및 인증번호 가져오기
         Member member = (Member) session.getAttribute("member");
         String sessionVerificationCode = (String) session.getAttribute("verificationCode");
         LocalDateTime verificationTime = (LocalDateTime) session.getAttribute("verificationTime");
@@ -103,13 +113,14 @@ public class MemberController {
             //회원 저장
             memberService.saveMember(member);
             logger.info("회원가입  성공: {}", member.getEmail());
+
             //세션에서 인증 정보 제거
             session.removeAttribute("member");
             session.removeAttribute("verificationCode");
             session.removeAttribute("verificationTime");
 
             return ResponseEntity.ok("회원가입이 완료되었습니다.");
-        } catch (Exception e){
+        } catch (Exception e) {
             logger.error("회원가입 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("서버 오류로 인해 회원가입에 실패했습니다.");
         }
@@ -133,6 +144,8 @@ public class MemberController {
         memberService.logout(session);
         return ResponseEntity.ok("로그아웃 성공!");
     }
+
 }
+
 
 

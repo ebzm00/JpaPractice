@@ -25,8 +25,8 @@ public class Member {
     private String m_tel; //전화번호
     private String m_address; //주소
 
-    @Column(nullable = false,length = 50)
-    private String m_name; //이름
+    @Column(name ="m_name", nullable = false, length = 50)
+    private String mName; //이름
 
     private String status; //인증여부
 
