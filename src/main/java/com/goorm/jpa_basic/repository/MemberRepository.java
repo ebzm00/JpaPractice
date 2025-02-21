@@ -14,8 +14,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     Optional<Member> findByEmail(String email);
 
-    //이메일 Like절 조회
-    @Query("SELECT m FROM Member m WHERE m.email LIKE %:email%")
-    List<Member> findByEmailLike(String email);
+    //이메일 Like 검색 (부분 일치 검색)
+    List<Member> findByEmailContaining(String email);
 
 }
