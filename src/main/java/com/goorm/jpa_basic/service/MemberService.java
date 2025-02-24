@@ -4,6 +4,7 @@ import com.goorm.jpa_basic.model.Member;
 import com.goorm.jpa_basic.repository.MemberRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -16,6 +17,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+
 
     // 모든 회원 조회
     public List<Member> getAllMembers() {
@@ -68,4 +70,20 @@ public class MemberService {
         session.invalidate(); //세션 무효화
     }
 
+    // 🔷 비밀번호 변경 기능 추가
+    public void updatePassword(String email, String newPassword) {
+        Optional<Member> memberOpt = memberRepository.findByEmail(email);
+
+        if (memberOpt.isPresent()) {
+            Member member = memberOpt.get();
+
+            // ✅새 비밀번호를 해싱 후 저장
+            String encodedPassword = passwordEncoder.encode(newPassword);
+            member.setPassword(encodedPassword);
+
+            memberRepository.save(member);
+        } else {
+            throw new RuntimeException("해당 이메일의 회원을 찾을 수 없습니다.");
+        }
+    }
 }

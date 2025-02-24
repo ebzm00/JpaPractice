@@ -15,10 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 
 @Controller
@@ -134,6 +131,35 @@ public class MemberController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
+    //✅ 비밀번호 찾기 (임시 비밀번호 발급 & 이메일 전송)
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String,String>> forgotPassword(@RequestBody Map<String, String> request) throws MessagingException {
+        String email = request.get("email");
+        Optional<Member> memberOpt = memberService.getUserByEmail(email);
+        Map<String, String> response = new HashMap<>();
+
+        if (memberOpt.isEmpty()) {
+            response.put("message", "해당 이메일로 등록된 계정이 없습니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        //🔷 임시 비밀번호 생성
+        String tempPassword = emailService.generateTemporaryPassword();
+
+        //🔷 비밀번호 변경 & 저장
+        memberService.updatePassword(email, tempPassword);
+
+        //🔷 임시 비밀번호 이메일 발송
+        emailService.sendTemporaryPasswordEmail(email,tempPassword);
+
+
+        response.put("message","임시 비밀번호가 이메일로 발송되었습니다.");
+        return ResponseEntity.ok(response);
+    }
+
+
+
 
     // 로그인 페이지 랜더링 (GET 요청)
     @GetMapping("/login")
