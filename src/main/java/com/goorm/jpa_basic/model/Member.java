@@ -26,8 +26,12 @@ public class Member {
     @Column(nullable = false)
     private String password; //비밀번호
 
+    @Column(nullable = false)
     private String phoneNumber; //전화번호
+
     private String address; //주소
+
+    @Column(nullable = false)
     private String mName; //이름
 
     @Setter

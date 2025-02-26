@@ -3,8 +3,8 @@ package com.goorm.jpa_basic.service;
 import com.goorm.jpa_basic.model.Member;
 import com.goorm.jpa_basic.repository.MemberRepository;
 import jakarta.servlet.http.HttpSession;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -32,6 +32,11 @@ public class MemberService {
     //이메일 LIKE 검색
     public List<Member> getUsersByEmailLike(String email) {
         return memberRepository.findByEmailContaining(email);
+    }
+
+//    이름과 전화번호로 이메일 찾기
+    public Optional<Member> getUserBymNameAndPhoneNumber(String mName, String phoneNumber) {
+        return memberRepository.findBymNameAndPhoneNumber(mName,phoneNumber);
     }
 
     // 회원 저장 (비밀번호 암호화 및 중복 이메일 검사 추가)
@@ -71,19 +76,15 @@ public class MemberService {
     }
 
     // 🔷 비밀번호 변경 기능 추가
+    @Transactional
     public void updatePassword(String email, String newPassword) {
-        Optional<Member> memberOpt = memberRepository.findByEmail(email);
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("해당 이메일의 회원을 찾을 수 없습니다."));
 
-        if (memberOpt.isPresent()) {
-            Member member = memberOpt.get();
+        member.setPassword(passwordEncoder.encode(newPassword));
 
-            // ✅새 비밀번호를 해싱 후 저장
-            String encodedPassword = passwordEncoder.encode(newPassword);
-            member.setPassword(encodedPassword);
+        memberRepository.save(member);
 
-            memberRepository.save(member);
-        } else {
-            throw new RuntimeException("해당 이메일의 회원을 찾을 수 없습니다.");
-        }
     }
+
 }

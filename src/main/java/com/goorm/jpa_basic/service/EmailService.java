@@ -7,6 +7,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
+import java.util.Random;
 import java.util.UUID;
 
 
@@ -62,12 +64,21 @@ public class EmailService {
 
     //인증 번호 생성(예: 6자리 숫자)
     private String generateVerificationCode() {
-        int code =  (int) (Math.random() * 900000) + 100000;
+        Random random = new SecureRandom();
+        int code = 100000 + random.nextInt(900000); // 100000 ~ 999999
         return String.valueOf(code);
     }
 
-    //✅ 임시 비밀번호 생성 메서드
+    //✅ 보안 강화된 8자리 임시 비밀번호 생성 (대소문자+숫자 조합)
     public String generateTemporaryPassword() {
-        return UUID.randomUUID().toString().substring(0,8); //8자리 난수 생성
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%";
+        StringBuilder password = new StringBuilder();
+        Random random = new SecureRandom();
+
+        for (int i = 0; i < 8; i++) {
+            password.append(characters.charAt(random.nextInt(characters.length())));
+        }
+
+        return password.toString();
     }
 }

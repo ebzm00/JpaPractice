@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>비밀번호/이메일 찾기</title>
+</head>
+<body>
+
+<h2>비밀번호 찾기 / 이메일 찾기</h2>
+
+<!-- 비밀번호 찾기 폼 -->
+<h3>비밀번호 찾기</h3>
+<form id="find-password-form">
+  <label for="email-password">이메일 입력:</label>
+  <input type="email" id="email-password" name="email"  autocomplete="off" required>
+  <button type="submit">비밀번호 찾기</button>
+</form>
+
+<!-- 이메일 찾기 폼 -->
+<h3>이메일 찾기</h3>
+<form id="find-email-form">
+  <label for="name" autocomplete="off">이름 입력:</label>
+  <input type="text" id="name" name="name"  autocomplete="off" required>
+
+  <label for="phone" autocomplete="off">전화번호 입력:</label>
+  <input type="text" id="phone" name="phone"  autocomplete="off" required>
+
+  <button type="submit">이메일 찾기</button>
+</form>
+
+<!-- 메시지 출력 -->
+<p id="message" style="color: red; display: none;"></p>
+
+<script>
+  // 비밀번호 찾기 요청 처리
+  document.getElementById('find-password-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const email = document.getElementById('email-password').value;
+      const messageElement = document.getElementById('message');
+
+      fetch('/find', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email: email })
+      })
+      .then(response => {
+          if (!response.ok) {
+              throw new Error("서버 응답 오류");
+          }
+          return response.json();
+      })
+      .then(data => {
+          messageElement.textContent = data.message;
+          messageElement.style.color = "green";
+          messageElement.style.display = "block";
+      })
+      .catch(error => {
+          messageElement.textContent = "오류 발생: " + error.message;
+          messageElement.style.color = "red";
+          messageElement.style.display = "block";
+      });
+  });
+
+  // 이메일 찾기 요청 처리
+  document.getElementById('find-email-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const name = document.getElementById('name').value;
+      const phone = document.getElementById('phone').value;
+      const messageElement = document.getElementById('message');
+
+      fetch('/find-email', {  // '/find-email'은 이메일 찾기 요청을 처리하는 엔드포인트
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ name: name, phone: phone })
+      })
+      .then(response => {
+          if (!response.ok) {
+              throw new Error("서버 응답 오류");
+          }
+          return response.json();
+      })
+      .then(data => {
+          messageElement.textContent = "이메일: " + data.email;
+          messageElement.style.color = "green";
+          messageElement.style.display = "block";
+      })
+      .catch(error => {
+          messageElement.textContent = "오류 발생: " + error.message;
+          messageElement.style.color = "red";
+          messageElement.style.display = "block";
+      });
+  });
+</script>
+
+</body>
+</html>

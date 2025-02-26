@@ -23,6 +23,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class MemberController {
 
+
     private final MemberService memberService;
     private final EmailService emailService;
     private final Logger logger = LoggerFactory.getLogger(MemberController.class);
@@ -58,6 +59,15 @@ public class MemberController {
     // 이메일 인증번호 발송 후 응답 수정
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> register(@RequestBody Member member, HttpSession session) throws MessagingException {
+        // 🔴 필수 정보 누락 체크
+        if (member.getMName() == null || member.getPhoneNumber() == null) {
+            // 로그로 출력해서 확인
+            logger.error("회원가입 실패: 이름 또는 전화번호 누락, mName: {}, phoneNumber: {}", member.getMName(), member.getPhoneNumber());
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "이름과 전화번호는 필수 입력값입니다.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+
         // 이미 가입된 이메일인지 확인
         if (memberService.getUserByEmail(member.getEmail()).isPresent()) {
             logger.warn("이미 가입된 이메일: {}", member.getEmail());
@@ -132,8 +142,14 @@ public class MemberController {
         }
     }
 
+    // 비밀번호 찾기 페이지 랜더링 (GET 요청)
+    @GetMapping("/find")
+    public String findPage() {
+        return "find"; //find.html을 반환 (템플릿 엔진을 사용하는 경우)
+    }
+
     //✅ 비밀번호 찾기 (임시 비밀번호 발급 & 이메일 전송)
-    @PostMapping("/forgot-password")
+    @PostMapping("/find")
     public ResponseEntity<Map<String,String>> forgotPassword(@RequestBody Map<String, String> request) throws MessagingException {
         String email = request.get("email");
         Optional<Member> memberOpt = memberService.getUserByEmail(email);
@@ -141,6 +157,7 @@ public class MemberController {
 
         if (memberOpt.isEmpty()) {
             response.put("message", "해당 이메일로 등록된 계정이 없습니다.");
+            response.put("status", "fail");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
@@ -151,13 +168,58 @@ public class MemberController {
         memberService.updatePassword(email, tempPassword);
 
         //🔷 임시 비밀번호 이메일 발송
-        emailService.sendTemporaryPasswordEmail(email,tempPassword);
+        try {
+            emailService.sendTemporaryPasswordEmail(email,tempPassword);
+            response.put("message", "임시 비밀번호가 이메일로 발송되었습니다.");
+            response.put("status", "success");
+            return ResponseEntity.ok(response);
+        } catch (MessagingException e) {
+            response.put("message", "이메일 전송에 실패했습니다. 다시 시도해주세요.");
+            response.put("status", "error");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
 
+    //✅ 이메일 찾기 (이름과 전화번호로 이메일 조회)
+    @PostMapping("/find-email")
+    public ResponseEntity<Map<String,String>> findEmailBymNameAndPhoneNumber(@RequestBody Map<String,String> request) {
+        String mName = request.get("mName");
+        String phoneNumber = request.get("phone");
 
-        response.put("message","임시 비밀번호가 이메일로 발송되었습니다.");
+        Map<String, String> response = new HashMap<>();
+
+        if (mName == null || mName.isBlank() || phoneNumber == null || phoneNumber.isBlank()) {
+            response.put("message","이름 과 전화번호를 정확히 입력해주세요.");
+            response.put("status","fail");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+
+        // 회원 정보 조회
+        Optional<Member> memberOpt = memberService.getUserBymNameAndPhoneNumber(mName,phoneNumber);
+
+        if (memberOpt.isEmpty()) {
+            response.put("message", "해당 이름과 전화번호로 등록된 이메일이 없습니다.");
+            response.put("status", "fail");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        //이메일 정보 반환 (보안상 이메일 일부 마스킹)
+        Member member = memberOpt.get();
+        String email = member.getEmail();
+        String maskedEmail = maskEmail(email); //이메일 마스킹 처리
+
+        response.put("email",maskedEmail);
+        response.put("status", "success");
         return ResponseEntity.ok(response);
     }
 
+    //이메일 마스킹 처리 메서드
+    private String maskEmail(String email) {
+        int atIndex = email.indexOf("@");
+        if (atIndex <= 1) return email; // "a@example.com" 같은 경우 마스킹 하지 않음
+        String maskedPart = "*".repeat(atIndex - 1);
+        return email.charAt(0) + maskedPart + email.substring(atIndex);
+    }
 
 
 
