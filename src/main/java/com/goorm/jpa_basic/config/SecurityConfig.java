@@ -20,7 +20,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // CSRF 비활성화 (람다식 변경)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/register", "/activate", "/login","/find").permitAll() // 로그인 페이지 및 회원가입 관련 요청 허용
+                        .requestMatchers("/register", "/activate", "/login","/find","/find-email").permitAll() // 로그인 페이지 및 회원가입 관련 요청 허용
                         .anyRequest().authenticated() // 나머지 요청은 인증 필요
                 )
                 .formLogin(form -> form

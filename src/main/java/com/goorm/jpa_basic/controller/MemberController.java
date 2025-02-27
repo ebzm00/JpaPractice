@@ -62,7 +62,7 @@ public class MemberController {
         // 🔴 필수 정보 누락 체크
         if (member.getMName() == null || member.getPhoneNumber() == null) {
             // 로그로 출력해서 확인
-            logger.error("회원가입 실패: 이름 또는 전화번호 누락, mName: {}, phoneNumber: {}", member.getMName(), member.getPhoneNumber());
+            logger.error("회원가입 실패: 이름 또는 전화번호 누락, mName: {}, phoneNumber: {}", member.getMName(),member.getPhoneNumber());
             Map<String, String> response = new HashMap<>();
             response.put("message", "이름과 전화번호는 필수 입력값입니다.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
@@ -184,7 +184,7 @@ public class MemberController {
     @PostMapping("/find-email")
     public ResponseEntity<Map<String,String>> findEmailBymNameAndPhoneNumber(@RequestBody Map<String,String> request) {
         String mName = request.get("mName");
-        String phoneNumber = request.get("phone");
+        String phoneNumber = request.get("phoneNumber");
 
         Map<String, String> response = new HashMap<>();
 
@@ -216,9 +216,9 @@ public class MemberController {
     //이메일 마스킹 처리 메서드
     private String maskEmail(String email) {
         int atIndex = email.indexOf("@");
-        if (atIndex <= 1) return email; // "a@example.com" 같은 경우 마스킹 하지 않음
-        String maskedPart = "*".repeat(atIndex - 1);
-        return email.charAt(0) + maskedPart + email.substring(atIndex);
+        if (atIndex <= 1) return email; // "ab@example.com" 같은 경우 마스킹 하지 않음
+        String maskedPart = "*".repeat(atIndex - 2);
+        return email.substring(0, 2) + maskedPart + email.substring(atIndex);
     }
 
 

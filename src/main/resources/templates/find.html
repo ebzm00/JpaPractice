@@ -19,12 +19,12 @@
 
 <!-- 이메일 찾기 폼 -->
 <h3>이메일 찾기</h3>
-<form id="find-email-form">
-  <label for="name" autocomplete="off">이름 입력:</label>
-  <input type="text" id="name" name="name"  autocomplete="off" required>
+<form id="find-email-form" action="/find-email">
+  <label for="mName" autocomplete="off">이름 입력:</label>
+  <input type="text" id="mName" name="mName"  autocomplete="off" required>
 
-  <label for="phone" autocomplete="off">전화번호 입력:</label>
-  <input type="text" id="phone" name="phone"  autocomplete="off" required>
+  <label for="phoneNumber" autocomplete="off">전화번호 입력:</label>
+  <input type="text" id="phoneNumber" name="phoneNumber"  autocomplete="off" required>
 
   <button type="submit">이메일 찾기</button>
 </form>
@@ -50,7 +50,7 @@
           if (!response.ok) {
               throw new Error("서버 응답 오류");
           }
-          return response.json();
+          return response.json(); // 응답이 JSON 형식일 때만 JSON으로 변환
       })
       .then(data => {
           messageElement.textContent = data.message;
@@ -65,36 +65,41 @@
   });
 
   // 이메일 찾기 요청 처리
-  document.getElementById('find-email-form').addEventListener('submit', function(event) {
-      event.preventDefault();
-      const name = document.getElementById('name').value;
-      const phone = document.getElementById('phone').value;
-      const messageElement = document.getElementById('message');
+ document.getElementById('find-email-form').addEventListener('submit', function(event) {
+    event.preventDefault();
 
-      fetch('/find-email', {  // '/find-email'은 이메일 찾기 요청을 처리하는 엔드포인트
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ name: name, phone: phone })
-      })
-      .then(response => {
-          if (!response.ok) {
-              throw new Error("서버 응답 오류");
-          }
-          return response.json();
-      })
-      .then(data => {
-          messageElement.textContent = "이메일: " + data.email;
-          messageElement.style.color = "green";
-          messageElement.style.display = "block";
-      })
-      .catch(error => {
-          messageElement.textContent = "오류 발생: " + error.message;
-          messageElement.style.color = "red";
-          messageElement.style.display = "block";
-      });
-  });
+    const mName = document.getElementById('mName').value;
+    const phoneNumber = document.getElementById('phoneNumber').value;
+    const messageElement = document.getElementById('message');
+
+    fetch('/find-email', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            mName: mName,
+            phoneNumber: phoneNumber
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("서버 응답 오류");
+        }
+        return response.json();
+    })
+    .then(data => {
+        messageElement.textContent = "이메일: " + data.email;
+        messageElement.style.color = "green";
+        messageElement.style.display = "block";
+    })
+    .catch(error => {
+        messageElement.textContent = "오류 발생: " + error.message;
+        messageElement.style.color = "red";
+        messageElement.style.display = "block";
+    });
+});
+
 </script>
 
 </body>

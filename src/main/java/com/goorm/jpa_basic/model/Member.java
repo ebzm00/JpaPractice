@@ -1,5 +1,6 @@
 package com.goorm.jpa_basic.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -32,6 +33,7 @@ public class Member {
     private String address; //주소
 
     @Column(nullable = false)
+    @JsonProperty("mName")  // JSON에서 "mName"을 Java 필드에 매핑
     private String mName; //이름
 
     @Setter
