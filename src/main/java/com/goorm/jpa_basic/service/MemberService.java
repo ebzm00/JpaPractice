@@ -51,23 +51,24 @@ public class MemberService {
     //로그인(세션 저장 + 인증 상태 체크)
     public boolean login(String email, String password, HttpSession session) {
         Optional<Member> memberOpt = memberRepository.findByEmail(email);
-        if (memberOpt.isPresent()) {
+        if (memberOpt.isEmpty()) {
+            return false; // ❌ 이메일 존재하지 않음
+        }
             Member member = memberOpt.get();
 
-            //비밀번호 검증
-            if (!passwordEncoder.matches(password, member.getPassword())) {
-                return false; //비밀번호 불일치
-            }
-
-            //인증 상태 확인(활성화된 회원만 로그인 가능)
-            if(!"ACTIVE".equals(member.getStatus())) {
-                throw new IllegalStateException("계정이 활성화되지 않았습니다.");
-            }
-
-            session.setAttribute("loggedInUser", member); // 세션에 유저 정보 저장
-            return true;
+        // 🔹 비밀번호 검증 (암호화된 비밀번호와 비교)
+        if (!passwordEncoder.matches(password, member.getPassword())) {
+            return false; // ❌ 비밀번호 불일치
         }
-        return false;
+
+        // 🔹 인증 상태 확인 (활성화된 회원만 로그인 가능)
+        if (!"ACTIVE".equals(member.getStatus())) {
+            return false; // ❌ 계정이 활성화되지 않음
+        }
+
+        // 🔹 로그인 성공 → 세션 저장
+        session.setAttribute("loggedInUser", member);
+        return true;
     }
 
     //로그아웃 (세션 삭제)

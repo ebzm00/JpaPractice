@@ -231,28 +231,16 @@ public class MemberController {
 
     // ✅ 로그인 (회원 상태 "ACTIVE"인지 체크)
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest, HttpSession session) {
-        Optional<Member> memberOpt = memberService.getUserByEmail(loginRequest.getEmail());
-
-        // 🔹 회원 존재 여부 확인
-        if (memberOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("이메일 또는 비밀번호가 일치하지 않습니다.");
-        }
-
-        Member member = memberOpt.get();
-
-        // 🔹 인증된 회원인지 확인
-        if (!"ACTIVE".equals(member.getStatus())) {
-            logger.warn("미인증 회원 로그인 시도: {}", member.getEmail());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("이메일 인증이 완료되지 않았습니다.");
-        }
-
-        // 🔹 로그인 처리
+    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest loginRequest, HttpSession session) {
         boolean isSuccess = memberService.login(loginRequest.getEmail(), loginRequest.getPassword(), session);
+
+        Map<String, String> response = new HashMap<>();
         if (isSuccess) {
-            return ResponseEntity.ok("로그인 성공!");
+            response.put("message", "로그인 성공!");
+            return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("이메일 또는 비밀번호가 일치하지 않습니다.");
+            response.put("message", "이메일 또는 비밀번호가 일치하지 않거나 계정이 활성화되지 않았습니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
 

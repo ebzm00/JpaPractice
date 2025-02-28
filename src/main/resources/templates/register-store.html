@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>매장 등록</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        label, input, textarea {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>매장 등록</h2>
+    <form id="store-form">
+        <label for="name">매장 이름:</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="address">주소:</label>
+        <input type="text" id="address" name="address" required>
+
+        <label for="phone">전화번호:</label>
+        <input type="tel" id="phone" name="phone" required>
+
+        <label for="hours">운영 시간:</label>
+        <input type="text" id="hours" name="hours" placeholder="예: 09:00 - 22:00" required>
+
+        <label for="description">매장 설명:</label>
+        <textarea id="description" name="description" rows="3"></textarea>
+
+        <button type="submit">등록</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById("store-form").addEventListener("submit", function(event) {
+        event.preventDefault(); // 기본 폼 제출 방지
+
+        const storeData = {
+            name: document.getElementById("name").value,
+            address: document.getElementById("address").value,
+            phone: document.getElementById("phone").value,
+            hours: document.getElementById("hours").value,
+            description: document.getElementById("description").value
+        };
+
+        fetch("/register-store", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(storeData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+        })
+        .catch(error => {
+            alert("오류 발생: " + error.message);
+        });
+    });
+</script>
+</body>
+</html>
